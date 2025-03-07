@@ -1,0 +1,223 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Fullscreen Background */
+body {
+    background: url('img/bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+/* Dark overlay */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.header img {
+    width: 80px;
+    height: 80px;
+}
+
+.header h2 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin: 0;
+}
+
+/* Form container */
+form {
+    width: 100%;
+    max-width: 500px;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Form Labels */
+label {
+    width: 100%;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Input Fields */
+input[type="text"], 
+input[type="email"], 
+input[type="date"], 
+input[type="file"], 
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    color: black;
+    font-size: 14px;
+}
+
+/* Input fields container */
+.form-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Mailing address fields */
+.mailing-address {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.mailing-address select {
+    width: 100%;
+}
+
+/* Phone number field */
+.phone-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.phone-prefix {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    border-right: 1px solid #ccc;
+    color: black;
+    font-size: 14px;
+}
+
+.phone-container input {
+    border: none;
+    outline: none;
+    padding: 10px;
+    flex: 1;
+    font-size: 14px;
+    background: transparent;
+}
+
+/* Upload box */
+.upload-box {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 14px;
+}
+
+/* File name display */
+.file-name {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #ddd;
+}
+
+/* Confirmation Box */
+.confirmation-box {
+    background: #ffc107;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+    border-radius: 5px;
+    margin-top: 10px;
+    color: black;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Checkbox */
+.confirmation-box input {
+    margin-right: 5px;
+}
+
+/* Register Button */
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s ease-in-out;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    form {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .header img {
+        width: 60px;
+        height: 60px;
+    }
+
+    button {
+        font-size: 14px;
+    }
+}

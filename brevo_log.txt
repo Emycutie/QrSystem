@@ -1,0 +1,2 @@
+2025-03-05 03:50:41 - Brevo Response: {"messageId":"<202503050250.11856303009@smtp-relay.mailin.fr>"}
+ - HTTP Code: 201 - cURL Error: 
