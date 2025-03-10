@@ -66,15 +66,16 @@ if ($row = mysqli_fetch_assoc($result)) {
         </div>
 
         <!-- Contact Info -->
-        <label for="contact">Contact:</label>
+        <label for="contact">Contact (10-digit only):</label>
         <div class="phone-container">
             <span class="phone-prefix">+63</span>
-            <input type="text" name="contact" id="contact" placeholder="9123456789" required>
+            <input type="text" name="contact" id="contact" placeholder="9123456789" required maxlength="10" pattern="\d{10}" title="Please enter exactly 10 digits">
         </div>
 
-        <!-- Email -->
         <label for="email">Email Address:</label>
-        <input type="email" name="email" required>
+        <input type="email" name="email" id="email" required>
+        <button type="button" id="verify-email-btn">Verify Email</button>
+        <span id="email-status"></span>
 
         <!-- Government ID Upload -->
         <label for="gov_id">Upload Government Valid ID:</label>
@@ -91,8 +92,7 @@ if ($row = mysqli_fetch_assoc($result)) {
     </form>
 
     <script>
-
-$(document).ready(function () {
+        $(document).ready(function () {
             // Restrict date selection to Thursdays
             $("#date").change(function () {
                 let selectedDate = new Date($(this).val());
@@ -103,16 +103,18 @@ $(document).ready(function () {
             });
 
             // Enable submit button when date is valid
-            $("#date").change(checkForm);
             function checkForm() {
-                let dateSelected = $("#date").val() !== "";
-                $("#register-btn").prop("disabled", !dateSelected);
+                let isDateValid = $("#date").val() !== "";
+                let isConfirmed = $("#confirmation").is(":checked");
+                let isFileUploaded = $("#gov_id").val() !== "";
+                $("#register-btn").prop("disabled", !(isDateValid && isConfirmed && isFileUploaded));
             }
-        });
-        $(document).ready(function () {
-            let defaultProvince = "<?= htmlspecialchars($defaultProvinceCode) ?>";
 
+            $("#date, #confirmation, #gov_id").change(checkForm);
+
+            // Load municipalities based on selected province
             function loadMunicipalities() {
+                let defaultProvince = "<?= htmlspecialchars($defaultProvinceCode) ?>";
                 $("#municipality").html('<option value="">Loading...</option>');
                 $.get("fetch_mailadd.php?type=municipality&province=" + defaultProvince, function (data) {
                     $("#municipality").html(data);
@@ -128,13 +130,14 @@ $(document).ready(function () {
                 });
             });
 
-            // Date selection validation
+            // Date selection validation for slot availability
             $("#date").change(function () {
                 let selectedDate = $(this).val();
                 if (selectedDate) {
                     $.post("check_slots.php", { date: selectedDate }, function (response) {
                         if (response >= 20) {
                             alert("Registration full for this date. Please select another Thursday.");
+                            $("#date").val(""); // Reset date if full
                             $("#register-btn").prop("disabled", true);
                         } else {
                             checkForm();
@@ -143,15 +146,7 @@ $(document).ready(function () {
                 }
             });
 
-            // Enable submit button when all fields are filled
-            $("#confirmation, #gov_id").change(checkForm);
-
-            function checkForm() {
-                let allFilled = $("#confirmation").is(":checked") && $("#gov_id").val() !== "";
-                $("#register-btn").prop("disabled", !allFilled);
-            }
-
-            // Handle form submission
+            // Handle form submission with duplicate check
             $("#registrationForm").submit(function (event) {
                 event.preventDefault();
                 let form = $(this);
@@ -173,13 +168,21 @@ $(document).ready(function () {
                             processData: false,
                             contentType: false,
                             success: function (data) {
-                                if (data.trim() === "success") {
-                                    window.location.href = "Qr_Gen.php";
-                                } else {
-                                    alert("Error: " + data);
+                                try {
+                                    let jsonData = typeof data === "string" ? JSON.parse(data) : data;
+
+                                    if (jsonData.status === "success") {
+                                        alert(jsonData.message);
+                                        window.location.href = "index.php"; // Redirect properly
+                                    } else {
+                                        alert("Error: " + jsonData.message);
+                                    }
+                                } catch (e) {
+                                    alert("Unexpected response from server.");
+                                    console.error("Parsing error:", e, data);
                                 }
                             },
-                            error: function (xhr) {
+                            error: function (xhr, status, error) {
                                 alert("An error occurred: " + xhr.responseText);
                             }
                         });
@@ -189,6 +192,95 @@ $(document).ready(function () {
 
             loadMunicipalities();
         });
+        $(document).ready(function () {
+    let emailVerified = false; // Track email verification status
+
+    // Email verification click handler
+    $("#verify-email-btn").click(function () {
+        let email = $("#email").val().trim();
+        let name = $("input[name='name']").val().trim();
+
+        if (email === "" || name === "") {
+            alert("Please enter both name and email.");
+            return;
+        }
+
+        $.ajax({
+            url: "email_ver.php",
+            type: "POST",
+            data: { email: email, name: name },
+            dataType: "json", // Ensure response is parsed automatically
+            success: function (response) {
+                if (response.status === "success") {
+                    $("#email-status").text("Verified").css("color", "green");
+                    emailVerified = true;
+                } else {
+                    $("#email-status").text("Verification failed").css("color", "red");
+                    alert(response.message);
+                    emailVerified = false;
+                }
+                checkForm(); // Re-check form conditions
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", status, error, xhr.responseText);
+                alert("An error occurred while verifying email.");
+                emailVerified = false;
+                checkForm(); // Ensure form doesn't allow submission
+            }
+        });
+    });
+
+    // Check if all conditions are met before enabling the Register button
+    function checkForm() {
+        let isDateValid = $("#date").val().trim() !== "";
+        let isConfirmed = $("#confirmation").is(":checked");
+        let isFileUploaded = $("#gov_id").val().trim() !== "";
+
+        $("#register-btn").prop("disabled", !(isDateValid && isConfirmed && isFileUploaded && emailVerified));
+    }
+
+    // Event listeners for form elements to trigger checkForm
+    $("#date, #confirmation, #gov_id, #email").change(checkForm);
+
+    // Handle Form Submission
+    $("#registrationForm").submit(function (event) {
+        event.preventDefault();
+
+        if (!emailVerified) {
+            alert("Please verify your email before proceeding.");
+            return;
+        }
+
+        let formData = new FormData(this);
+        $.ajax({
+            url: "submit.php",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                try {
+                    let jsonData = JSON.parse(response);
+                    if (jsonData.status === "success") {
+                        alert("Registration successful!");
+                        window.location.href = "Qr_Gen.php";
+                    } else {
+                        alert("Error: " + jsonData.message);
+                    }
+                } catch (e) {
+                    alert("Unexpected response from server.");
+                    console.error("Parsing error:", e, response);
+                }
+            },
+            error: function (xhr) {
+                alert("An error occurred: " + xhr.responseText);
+                console.error("XHR Error:", xhr);
+            }
+        });
+    });
+});
+
     </script>
+
 </body>
 </html>
